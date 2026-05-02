@@ -1,0 +1,7 @@
+# SQL artifacts
+*.dump
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
