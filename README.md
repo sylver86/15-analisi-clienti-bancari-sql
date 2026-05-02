@@ -1,131 +1,137 @@
-# BancaInsight — Analisi Customer 360 su Database Bancario (SQL)
+# 🏦 BancaInsight: Financial Data Engineering & Customer 360 Analytics
 
-![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white)
-![SQL](https://img.shields.io/badge/SQL-Stored%20Procedure-orange)
-![Analytics](https://img.shields.io/badge/Analytics-Customer%20360-blue)
+<p align="center">
+  <img src="https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/SQL-Advanced--Analytics-orange" alt="SQL" />
+  <img src="https://img.shields.io/badge/Logic-Stored--Procedures-red" alt="Stored-Procedures" />
+  <img src="https://img.shields.io/badge/Analytics-Customer--360-blue" alt="Customer-360" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" />
+</p>
 
-## Panoramica
+**BancaInsight** è un'infrastruttura di analisi SQL avanzata progettata per la generazione di una vista **Customer 360** all'interno del dominio bancario. Il progetto implementa una pipeline di aggregazione complessa tramite Stored Procedures e Dynamic SQL, trasformando database relazionali altamente normalizzati in una tabella "flat" ad alte prestazioni, pronta per alimentare modelli di Machine Learning (es. Churn Prediction) o dashboard di BI executive.
 
-Analisi Customer 360 su database bancario implementata come stored procedure MySQL che aggrega **11 gruppi di KPI per cliente** — transazioni in entrata/uscita, importi, conti per tipologia — in un'unica tabella finale con 30+ colonne. Il pivot dei risultati per tipo di conto è generato dinamicamente a runtime con `GROUP_CONCAT` + `PREPARE/EXECUTE`.
+## 🏢 Valore Enterprise & Settori di Applicazione
 
-Pattern direttamente applicabile a CRM bancario, assicurativo e telecomunicazioni: qualsiasi contesto enterprise dove si deve aggregare la visione completa del cliente da tabelle relazionali normalizzate.
-
-## Valore Enterprise
-
-| Settore / Azienda | Rilevanza |
+| Settore / Ambito | Rilevanza & Benefici |
 |-------------------|-----------|
-| Banking & Insurance | Customer 360 view, segmentazione clientela, analisi comportamentale |
-| Telecomunicazioni | Analisi consumo e profilo cliente per churn prediction |
-| IT Consulting (Accenture, NTT Data) | SQL avanzato per clienti Financial Services |
-| Engineering Informatica | Stored procedure complesse in sistemi gestionali enterprise |
-
-## Schema Database
-
-```
-banca
-├── cliente          — anagrafica cliente (id, nome, cognome, data_nascita)
-├── conto            — conti (id_conto, id_cliente, id_tipo_conto)
-├── tipo_conto       — tipologie: Base · Business · Famiglie · Privati
-├── transazioni      — movimenti (id_conto, id_tipo_trans, importo)
-└── tipo_transazione — direzione: '+' entrata / '-' uscita
-```
-
-## Output: Tabella Customer 360
-
-Una riga per cliente, 30+ colonne:
-
-| Gruppo KPI | Colonne generate |
-|------------|-----------------|
-| Anagrafica | Età (calcolata), nome, cognome |
-| Conti totali | Numero conti distinti per cliente |
-| Conti per tipologia | N° Base · Business · Famiglie · Privati |
-| Transazioni uscita | Totale + breakdown per tipo conto |
-| Transazioni entrata | Totale + breakdown per tipo conto |
-| Importi uscita | Totale + breakdown per tipo conto |
-| Importi entrata | Totale + breakdown per tipo conto |
-
-## Tecniche SQL Avanzate
-
-| Tecnica | Scopo |
-|---------|-------|
-| `GROUP_CONCAT` | Genera dinamicamente la lista colonne — funziona per n tipologie |
-| `PREPARE` / `EXECUTE` | Esegue la stringa SQL costruita a runtime |
-| `LEFT JOIN` chain (×10) | Join di 10 tabelle temporanee su `id_cliente` senza perdere clienti |
-| `COALESCE(..., 0)` | Default zero per clienti senza movimenti su un tipo di conto |
-| Subquery su `tipo_transazione` | Separa entrate (`+`) da uscite (`-`) in modo pulito |
-
-## Come Eseguire
-
-```sql
-USE banca;
-SOURCE /path/to/analisi_clienti.sql;
-SELECT * FROM analisi_clienti;
-```
-
-La stored procedure completa con tutti gli 11 step intermedi è in `analisi_clienti.sql`.
-
-## Stack Tecnologico
-
-`MySQL 8.x` · `Stored Procedures` · `Dynamic SQL` · `PREPARE/EXECUTE` · `GROUP_CONCAT` · `Tabelle Temporanee`
+| **Banking & Finance** | Consolidamento della posizione cliente tra più prodotti (conti, carte, investimenti) per una segmentazione comportamentale accurata. |
+| **CRM & Marketing Automation** | Fornitura di dataset aggregati ("Golden Record") per la personalizzazione delle offerte e il calcolo della propensione all'abbandono. |
+| **Financial Reporting** | Automazione della reportistica operativa su volumi transazionali massivi tramite logiche di aggregazione scalabili. |
+| **Data Migration & ETL** | Implementazione di pattern di trasformazione dati direttamente all'interno del DWH per massimizzare le performance (ELT). |
 
 ---
 
+## 🎯 Executive Summary & Valore di Business
+BancaInsight risolve il collo di bottiglia del data preparation, automatizzando l'estrazione di oltre 30 KPI critici per ogni singolo cliente in un'unica operazione atomica.
+
+### 🏛️ 1. Ingegneria SQL Dinamica
+* **Pivot a Runtime:** Invece di hard-codare le tipologie di conto, il sistema utilizza `GROUP_CONCAT` e `PREPARE/EXECUTE` per costruire dinamicamente lo schema della tabella finale. Questo permette al sistema di adattarsi automaticamente all'aggiunta di nuovi prodotti bancari senza modifiche al codice.
+* **Catena di Join Ottimizzata:** Implementazione di una sequenza di `LEFT JOIN` su tabelle temporanee caricate in memoria, garantendo la conservazione dell'anagrafica cliente anche in assenza di transazioni recenti (Data Integrity).
+
+### ⚙️ 2. Customer 360 KPI Groups
+La stored procedure aggrega 11 macro-gruppi di metriche, fornendo una profondità analitica senza precedenti:
+* **Comportamento Transazionale:** Conteggio e importi medi di entrate/uscite segmentati per tipologia di conto (Base, Business, Family, Private).
+* **Metriche Demografiche:** Calcolo dinamico dell'età e segmentazione anagrafica integrata nel record transazionale.
+* **Enforcement di Default:** Utilizzo sistematico di `COALESCE` per gestire i valori nulli, garantendo un dataset pulito e pronto per l'analisi statistica.
+
+### 🛡️ 3. Efficienza Operativa
+* **Automazione Totale:** La logica è incapsulata in un unico script SQL eseguibile via scheduler, riducendo l'errore umano e i tempi di elaborazione rispetto a pipeline di data preparation manuali.
+
 ---
 
-# BancaInsight — Bank Customer 360 Analytics (SQL) 🇬🇧
+## 🏗️ Architettura del Ciclo di Aggregazione
 
-![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white)
-![SQL](https://img.shields.io/badge/SQL-Stored%20Procedure-orange)
+```mermaid
+graph TD
+    subgraph "Relational Data Layers"
+        CLT[("👤 Cliente Anagrafica")]
+        CNT[("💳 Conti & Tipologie")]
+        TRN[("💸 Transazioni Raw")]
+    end
 
-## Overview
+    subgraph "Processing Logic (Stored Procedure)"
+        direction TB
+        TEMP["🛠️ Temp Tables Creation<br/>(Transactional Split)"]
+        DYN["🪄 Dynamic SQL Generation<br/>(Product Pivot)"]
+        AGGR["📊 Massive Join & Aggregation<br/>(30+ KPI Columns)"]
+    end
 
-Customer 360 analytics on a banking database implemented as a single MySQL stored procedure aggregating **11 KPI groups per customer** into a 30+ column fact table. The pivot by account type is generated dynamically at runtime via `GROUP_CONCAT` + `PREPARE/EXECUTE`.
+    subgraph "Final Analytics Layer"
+        C360["🏆 Customer 360 Table<br/>(Golden Record)"]
+    end
 
-Pattern directly applicable to banking, insurance, and telecom CRM: any enterprise context requiring a complete customer view from normalised relational tables.
+    CLT & CNT & TRN --> TEMP
+    TEMP --> DYN
+    DYN --> AGGR
+    AGGR --> C360
 
-## Database Schema
-
+    style CLT fill:#339af0,color:#fff
+    style TRN fill:#be4bdb,color:#fff
+    style C360 fill:#2ecc71,color:#fff
 ```
-banca
-├── cliente          — customer master (id, name, surname, birthdate)
-├── conto            — accounts (id_conto, id_cliente, id_tipo_conto)
-├── tipo_conto       — types: Base · Business · Famiglie · Privati
-├── transazioni      — transactions (id_conto, id_tipo_trans, amount)
-└── tipo_transazione — direction: '+' inflow / '-' outflow
-```
 
-## Output: Customer 360 Table
+## 🛠️ Stack Tecnologico
 
-One row per customer, 30+ columns:
+| Layer | Tecnologia | Ruolo |
+|:------|:-----------|:-----|
+| 🗄️ **Database** | MySQL 8.x | RDBMS & Analytics Engine |
+| ⚙️ **Logic** | Stored Procedures | Encapsulated Transformation Logic |
+| 🪄 **Dynamic SQL** | PREPARE / EXECUTE | Adaptive Schema Generation |
+| 📊 **Analytics** | SQL Aggregate Functions | KPI Calculation |
 
-| KPI Group | Columns |
-|-----------|---------|
-| Demographics | Age (computed), name, surname |
-| Total accounts | Count of distinct accounts |
-| Accounts by type | N° Base · Business · Famiglie · Privati |
-| Outflow transactions | Total + per account type |
-| Inflow transactions | Total + per account type |
-| Outflow amounts | Total + per account type |
-| Inflow amounts | Total + per account type |
-
-## Advanced SQL Techniques
-
-| Technique | Purpose |
-|-----------|---------|
-| `GROUP_CONCAT` | Builds pivot column list dynamically at runtime |
-| `PREPARE` / `EXECUTE` | Runs dynamically constructed SQL string |
-| `LEFT JOIN` chain (×10) | Joins 10 temp tables without losing customers |
-| `COALESCE(..., 0)` | Defaults to zero for customers with no activity on a type |
-| Subquery on `tipo_transazione` | Cleanly separates inflow from outflow transactions |
-
-## How to Run
+## 🚀 Esecuzione
 
 ```sql
+-- Inizializzazione del database
 USE banca;
-SOURCE /path/to/analisi_clienti.sql;
+
+-- Esecuzione della pipeline di analisi
+SOURCE analisi_clienti.sql;
+
+-- Accesso al Data Product finale
 SELECT * FROM analisi_clienti;
 ```
 
-## Technologies
+<br><br>
+
+*Progettato e sviluppato da Eugenio Pasqua.*
+
+---
+
+# 🇬🇧 ENGLISH VERSION
+
+# 🏦 BancaInsight: Financial Data Engineering & Customer 360 Analytics
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/SQL-Advanced--Analytics-orange" alt="SQL" />
+</p>
+
+**BancaInsight** is an advanced SQL analysis infrastructure designed to generate a **Customer 360** view within the banking domain. The project implements a complex aggregation pipeline using Stored Procedures and Dynamic SQL, transforming highly normalized relational databases into a high-performance "flat" table, ready for Machine Learning models or executive BI dashboards.
+
+## 🏢 Enterprise Value & Application Sectors
+
+| Sector / Domain | Relevance & Benefits |
+|-------------------|-----------|
+| **Banking** | Consolidating customer positions across products for accurate behavioral segmentation. |
+| **CRM & Marketing** | Providing "Golden Records" for offer personalization and churn propensity modeling. |
+| **Data Engineering** | Implementing ELT (Extract, Load, Transform) patterns directly within the DWH for maximum performance. |
+
+---
+
+## 🏗️ Aggregation Cycle Architecture
+
+```mermaid
+graph TD
+    RAW[("🗄️ Relational Source Tables")] --> PROC["⚙️ Stored Procedure Logic<br/>(Temp Tables & Pivot)"]
+    PROC --> DYN["🪄 Dynamic SQL Generation"]
+    DYN --> OUT["🏆 Customer 360 Golden Record"]
+```
+
+## 🧰 Technology Stack
 
 `MySQL 8.x` · `Stored Procedures` · `Dynamic SQL` · `PREPARE/EXECUTE` · `GROUP_CONCAT` · `Temporary Tables`
+
+<br><br>
+
+*Designed and developed by Eugenio Pasqua.*
